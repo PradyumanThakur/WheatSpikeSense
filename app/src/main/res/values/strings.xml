@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">WheatSpikeSense</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+    <string name="title_activity_login2">LoginActivity2</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="log_in">Log In</string>
+    <string name="not_yet_registered_signup">Not yet Registered? Signup</string>
+
+    <string-array name="model">
+        <item>yolov5s-int8</item>
+        <item>yolov5s-fp16</item>
+    </string-array>
+
+    <string-array name="delegate">
+        <item>CPU</item>
+        <item>GPU</item>
+        <item>NNAPI</item>
+    </string-array>
+</resources>
