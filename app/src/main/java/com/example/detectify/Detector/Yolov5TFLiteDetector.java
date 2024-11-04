@@ -45,8 +45,8 @@ public class Yolov5TFLiteDetector {
     public float DETECT_THRESHOLD = 0.50f;
     public float IOU_THRESHOLD = 0.50f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.70f;
-    private final String MODEL_YOLOV5S_FP16 = "yolov5s-fp16.tflite";
-    private final String MODEL_YOLOV5S_INT8 = "yolov5s-int8.tflite";
+    private final String MODEL_YOLOV5S = "yolov5s-fp16.tflite";
+    private final String MODEL_YOLOV5M = "yolov5m-fp16.tflite";
     private final String LABEL_FILE = "label.txt";
     MetadataExtractor.QuantizationParams input5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.003921568859368563f, 0);
     MetadataExtractor.QuantizationParams output5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.00828352477401495f, 5);
@@ -64,16 +64,16 @@ public class Yolov5TFLiteDetector {
         switch (modelFile) {
             case "yolov5s-fp16":
                 IS_INT8 = false;
-                MODEL_FILE = MODEL_YOLOV5S_FP16;
+                MODEL_FILE = MODEL_YOLOV5S;
                 break;
 
-            case "yolov5s-int8":
-                IS_INT8 = true;
-                MODEL_FILE = MODEL_YOLOV5S_INT8;
+            case "yolov5m-fp16":
+                IS_INT8 = false;
+                MODEL_FILE = MODEL_YOLOV5M;
                 break;
 
             default:
-                Log.i("tfliteSupport", "Only yolov5sfp16/n/sint8 can be load!");
+                Log.i("tfliteSupport", "Only yolov5n/s/m can be load!");
         }
     }
 

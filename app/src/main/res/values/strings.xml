@@ -15,6 +15,7 @@
     <string name="not_yet_registered_signup">Not yet Registered? Signup</string>
 
     <string-array name="model">
+        <item>yolov5m-fp16</item>
         <item>yolov5s-int8</item>
         <item>yolov5s-fp16</item>
     </string-array>
