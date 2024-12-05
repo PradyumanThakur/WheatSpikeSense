@@ -63,6 +63,7 @@ public class SaveDataActivity extends AppCompatActivity {
         values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/wheatSpikeSenseData");
+            Log.d(TAG, "Environment.DIRECTORY_DOWNLOADS: " + Environment.DIRECTORY_DOWNLOADS);
         }
 
         Uri uri = null;

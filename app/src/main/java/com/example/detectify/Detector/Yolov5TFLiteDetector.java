@@ -73,7 +73,7 @@ public class Yolov5TFLiteDetector {
                 break;
 
             default:
-                Log.i("tfliteSupport", "Only yolov5n/s/m can be load!");
+                Log.i("tfliteSupport", "Only yolov5n/s/m can be loaded!");
         }
     }
 

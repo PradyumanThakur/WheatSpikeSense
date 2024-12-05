@@ -50,6 +50,7 @@ public class DetectActivity extends AppCompatActivity {
     private TextView inferenceTimeTextView;
     private TextView frameSizeTextView;
     private TextView objectCountsTextView;
+    private TextView counting_inferenceTimeTextView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private Yolov5TFLiteDetector yolov5TFLiteDetector;
 
@@ -144,6 +145,7 @@ public class DetectActivity extends AppCompatActivity {
         detectThresholdTextView = findViewById(R.id.detectThresholdTextView);
 
         objectCountsTextView = findViewById(R.id.objectCountsTextView);
+        counting_inferenceTimeTextView = findViewById(R.id.counting_inferenceTimeTextView);
 
         closeButton = findViewById(R.id.closebutton);
 
@@ -181,7 +183,7 @@ public class DetectActivity extends AppCompatActivity {
 
         // Set default model selection to yolov5s-fp16
         String defaultModel = "yolov5s-fp16";
-        int defaultModelPosition = 1; // Position of yolov5s-fp16 in the spinner array
+        int defaultModelPosition = 0; // Position of yolov5s-fp16 in the spinner array
         modelSpinner.setSelection(defaultModelPosition);
 
         // Initialize model
