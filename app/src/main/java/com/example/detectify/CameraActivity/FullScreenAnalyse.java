@@ -17,14 +17,10 @@ import androidx.camera.core.ImageProxy;
 import androidx.camera.view.PreviewView;
 
 import com.example.detectify.Detector.Yolov5TFLiteDetector;
-import com.example.detectify.CameraActivity.ImageProcess;
 import com.example.detectify.Utility.Recognition;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -36,11 +32,13 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
 
     public static class Result{
 
-        public Result(long costTime, Bitmap bitmap) {
+        public Result(long costTime, long count_time, Bitmap bitmap) {
             this.costTime = costTime;
             this.bitmap = bitmap;
+            this.count_time = count_time;
         }
         long costTime;
+        long count_time;
         Bitmap bitmap;
     }
 
@@ -52,9 +50,10 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
     ImageProcess imageProcess;
     private Yolov5TFLiteDetector yolov5TFLiteDetector;
     private TextView objectCountsTextView;
+    private TextView counting_inferenceTimeTextView;
 
     private int nextPotId = 0;
-    public HashMap<String, Set<Integer>> spikePerPotSet = new HashMap<>();
+    //public HashMap<String, Set<Integer>> spikePerPotSet = new HashMap<>();
     private HashMap<String, Integer> spikePerPot = new HashMap<>();
     private boolean detectionBit = false;
 
@@ -76,8 +75,10 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
         this.objectCountsTextView = objectCountsTextView;
 
         // Initialize the first pot
-        spikePerPotSet.put("Pot" + nextPotId, new HashSet<>());
-        spikePerPot.put("Pot" + nextPotId, 0);
+        //spikePerPotSet.put("Pot" + nextPotId, new HashSet<>());
+        //spikePerPot.put("Pot" + nextPotId, 0);
+        String initialPotKey = "Pot" + nextPotId;
+        spikePerPot.put(initialPotKey, 0);
     }
 
     public HashMap<String, Integer> getSpikePerPot() {
@@ -93,7 +94,6 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
         // and gets back the corresponding data when rendering the UI to avoid front-end UI lags.
         Observable.create( (ObservableEmitter<Result> emitter) -> {
             long start = System.currentTimeMillis();
-            Log.i(TAG,""+previewWidth+'/'+previewHeight);
 
             byte[][] yuvBytes = new byte[3][];
             ImageProxy.PlaneProxy[] planes = image.getPlanes();
@@ -170,6 +170,7 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
             textPain.setStyle(Paint.Style.FILL);
 
             // Object counts for current frame
+            long start_count = System.currentTimeMillis();
             HashMap<String, Integer> objectCounts = new HashMap<>();
             for (Recognition res : recognitions) {
                 RectF location = res.getLocation();
@@ -179,45 +180,54 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
                 cropCanvas.drawRect(location, boxPaint);
                 cropCanvas.drawText(label + ":" + String.format("%.2f", confidence), location.left, location.top, textPain);
 
-                Log.d(TAG, label);
                 objectCounts.put(label, objectCounts.getOrDefault(label, 0) + 1);
 
             }
 
+            // Determine the current pot key
+            String currentPotKey = "Pot" + nextPotId;
+
             // Process detections
             if (objectCounts.isEmpty()) {
                 detectionBit = true;
-                if (spikePerPotSet.get("Pot" + nextPotId).size() <= 1) {
-                    spikePerPotSet.get("Pot" + nextPotId).add(-1);
+                // If no spikes have been detected, keep the current pot count unchanged.
+                if (spikePerPot.getOrDefault(currentPotKey, 0) == 0) {
+                    spikePerPot.put(currentPotKey, -1); // Mark as no spike detected.
                 }
             } else {
-                if (objectCounts.getOrDefault("Pot", 0) > 0) {
+                int potCount = objectCounts.getOrDefault("Pot", 0);
+                int spikeCount = objectCounts.getOrDefault("Wheat Spike", 0);
+                if (potCount > 0) {
                     if (detectionBit) {
-                        nextPotId++;
-                        spikePerPotSet.put("Pot" + nextPotId, new HashSet<>());
-                        spikePerPot.put("Pot" + nextPotId, 0);
+                        // Move to the next pot when a new pot is detected
+                        currentPotKey = "Pot" + (++nextPotId);
+                        spikePerPot.put(currentPotKey, 0);
                         detectionBit = false;
+                        //nextPotId++;
+                        //spikePerPotSet.put("Pot" + nextPotId, new HashSet<>());
+                        //spikePerPot.put("Pot" + nextPotId, 0);
+                        //detectionBit = false;
                     }
-                    if (objectCounts.getOrDefault("Wheat Spike", 0) > 0) {
-                        spikePerPotSet.get("Pot" + nextPotId).add(objectCounts.get("Wheat Spike"));
+                    if (spikeCount> 0) {
+                        //spikePerPotSet.get("Pot" + nextPotId).add(objectCounts.get("Wheat Spike"));
+                        // Dynamically update the maximum spike count for the current pot
+                        spikePerPot.put(currentPotKey, Math.max(spikePerPot.getOrDefault(currentPotKey, 0), spikeCount));
                     }
+                } else if (spikeCount > 0) {
+                    // Spikes detected but no pot, log a warning or skip
+                    System.out.println("Warning: Spikes detected without a pot. Ignoring spikes.");
                 }
-            }
-
-            if (spikePerPotSet.get("Pot" + nextPotId).size() >= 1) {
-                spikePerPot.put("Pot" + nextPotId, spikePerPotSet.get("Pot" + nextPotId).stream().max(Integer::compareTo).orElse(0));
-            } else {
-                spikePerPot.put("Pot" + nextPotId, 0);
             }
 
             //Log.d("spike", objectCounts.toString());
-            //Log.d("spike", spikePerPotSet.toString());
-            Log.d("spike", spikePerPot.toString());
+            //Log.d("spike", String.valueOf(spikePerPot));
 
             long end = System.currentTimeMillis();
             long costTime = (end - start);
+            long count_time = (end - start_count);
+            Log.d("count_time", String.valueOf(count_time));
             image.close();
-            emitter.onNext(new Result(costTime, emptyCropSizeBitmap));
+            emitter.onNext(new Result(costTime, count_time, emptyCropSizeBitmap));
         }).subscribeOn(Schedulers.io()) // The observer is defined here, which is the thread of the above code. If it is not defined, it is synchronized with the main thread, not asynchronous.
                 // Here is back to the main thread, the observer receives the data sent by the emitter for processing
                 .observeOn(AndroidSchedulers.mainThread())
@@ -228,6 +238,7 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
                     inferenceTimeTextView.setText(Long.toString(result.costTime) + "ms");
                     // Update objectCountsTextView with the latest count
                     objectCountsTextView.setText(generateCountsText());
+                    counting_inferenceTimeTextView.setText(Long.toString(result.count_time) + "ms");
                 });
     }
 
