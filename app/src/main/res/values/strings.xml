@@ -16,7 +16,6 @@
 
     <string-array name="model">
         <item>yolov5s-fp16</item>
-        <item>yolov5m-fp16</item>
     </string-array>
 
     <string-array name="delegate">

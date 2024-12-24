@@ -11,11 +11,13 @@ import android.widget.Toast;
 import com.example.detectify.Utility.Recognition;
 
 import org.tensorflow.lite.DataType;
+
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.CompatibilityList;
 import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.gpu.GpuDelegateFactory;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
+
 import org.tensorflow.lite.support.common.FileUtil;
 import org.tensorflow.lite.support.common.TensorProcessor;
 import org.tensorflow.lite.support.common.ops.CastOp;
@@ -46,7 +48,7 @@ public class Yolov5TFLiteDetector {
     public float IOU_THRESHOLD = 0.50f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.70f;
     private final String MODEL_YOLOV5S = "yolov5s-fp16.tflite";
-    private final String MODEL_YOLOV5M = "yolov5m-fp16.tflite";
+    //private final String MODEL_YOLOV5M = "yolov5m-fp16.tflite";
     private final String LABEL_FILE = "label.txt";
     MetadataExtractor.QuantizationParams input5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.003921568859368563f, 0);
     MetadataExtractor.QuantizationParams output5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.00828352477401495f, 5);
@@ -66,12 +68,12 @@ public class Yolov5TFLiteDetector {
                 IS_INT8 = false;
                 MODEL_FILE = MODEL_YOLOV5S;
                 break;
-
+            /*
             case "yolov5m-fp16":
                 IS_INT8 = false;
                 MODEL_FILE = MODEL_YOLOV5M;
                 break;
-
+            */
             default:
                 Log.i("tfliteSupport", "Only yolov5n/s/m can be loaded!");
         }
@@ -385,8 +387,9 @@ public class Yolov5TFLiteDetector {
             GpuDelegate gpuDelegate = new GpuDelegate(delegateOptions);
             options.addDelegate(gpuDelegate);
             Log.i("tfliteSupport", "using gpu delegate.");
+
         } else {
-            // if the GPU is not supported, run on 4 threads
+            // if the GPU is not supported, run on 4 threads    
             addThread(4);
             Log.i("tfliteSupport", "GPU is not supported on this device.");
         }

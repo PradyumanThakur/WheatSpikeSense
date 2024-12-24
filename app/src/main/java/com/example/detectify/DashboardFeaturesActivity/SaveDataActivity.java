@@ -14,11 +14,10 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-import com.example.detectify.DatabaseActivity.DatabaseHelper;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,15 +33,24 @@ public class SaveDataActivity extends AppCompatActivity {
     private static final String PREF_EMAIL = "email";
 
     private static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 1;
+    private static Context mContext;
 
     public static void exportData(Context context) {
+        mContext = context;
         // Check for storage permission (if needed)
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted, request it
-            ActivityCompat.requestPermissions((AppCompatActivity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
-            return; // Exit the method if permission is not granted yet
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                // Permission is not granted, request it
+                ActivityCompat.requestPermissions((AppCompatActivity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
+                return; // Exit the method if permission is not granted yet
+            }
         }
 
+        // Proceed with exporting data if permission is already granted
+        exportDataInternal(context);
+    }
+
+    private static void exportDataInternal(Context context) {
         // Retrieve user_id and email from SharedPreferences
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         int userId = prefs.getInt(PREF_USER_ID, -1);
@@ -50,6 +58,7 @@ public class SaveDataActivity extends AppCompatActivity {
 
         if (userId == -1 || email == null) {
             Log.e(TAG, "User ID or Email not found in SharedPreferences.");
+            Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -61,6 +70,7 @@ public class SaveDataActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/wheatSpikeSenseData");
             Log.d(TAG, "Environment.DIRECTORY_DOWNLOADS: " + Environment.DIRECTORY_DOWNLOADS);
@@ -76,8 +86,8 @@ public class SaveDataActivity extends AppCompatActivity {
                 // Write CSV header and data rows to outputStream
                 writeCsvData(context, outputStream, userId);
 
-                Log.d(TAG, "User data exported to CSV: " + uri.toString());
-                Toast.makeText(context, "Data saved to: " + uri.toString(), Toast.LENGTH_LONG).show();
+                Log.d(TAG, "User data exported to CSV: " + uri);
+                Toast.makeText(context, "Data saved to: Downloads/wheatSpikeSenseData/" + fileName, Toast.LENGTH_LONG).show();
             } catch (IOException e) {
                 Log.e(TAG, "Error exporting user data to CSV: ", e);
                 Toast.makeText(context, "Error saving data", Toast.LENGTH_SHORT).show();
@@ -131,12 +141,13 @@ public class SaveDataActivity extends AppCompatActivity {
     }
 
     // Handle permission request result
-    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, proceed with exporting data
-                exportData(this); // Call exportData again
+                exportDataInternal(mContext); // Call exportData again
             } else {
                 // Permission denied, handle accordingly (e.g., show a message)
                 Toast.makeText(this, "Storage permission denied. Cannot export data.", Toast.LENGTH_SHORT).show();

@@ -1,5 +1,6 @@
 package com.example.detectify.UserActivity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 
@@ -25,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private TextView signupText;
     private DatabaseHelper databaseHelper;
+    private OnBackPressedCallback backPressedCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +42,10 @@ public class LoginActivity extends AppCompatActivity {
 
         databaseHelper = new DatabaseHelper(this);
 
-        // Check if user is already logged in
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
 
-        if (isLoggedIn) {
+        if (isUserLoggedIn()) {
             // User is already logged in, redirect to dashboard
-            Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
-            startActivity(intent);
-            finish();
+            redirectToDashboard();
             return; // Important: Stop further execution of onCreate
         }
 
@@ -73,6 +71,15 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // Handle the back button press
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                showExitConfirmationDialog();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
     }
 
     private void loginUser() {
@@ -119,9 +126,7 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
 
                     // Redirect to dashboard
-                    Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
-                    startActivity(intent);
-                    finish();
+                    redirectToLastActivity();
 
                 } else {
                     Toast.makeText(LoginActivity.this, "Error retrieving user details", Toast.LENGTH_SHORT).show();
@@ -139,5 +144,48 @@ public class LoginActivity extends AppCompatActivity {
     private void clearFields() {
         etEmail.setText("");
         etPassword.setText("");
+    }
+
+    private void redirectToDashboard() {
+        Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void redirectToLastActivity() {
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String lastActivity = prefs.getString("last_activity", null);
+
+        if (lastActivity != null) {
+            try {
+                Class<?> activityClass = Class.forName(lastActivity);
+                Intent intent = new Intent(LoginActivity.this, activityClass);
+                startActivity(intent);
+                finish();
+            } catch (ClassNotFoundException e) {
+                Log.e(TAG, "Error redirecting to last activity: ", e);
+                // Fallback to DashboardActivity if last activity is not found
+                redirectToDashboard();
+            }
+        } else {
+            // If no last activity is found, go to DashboardActivity
+            redirectToDashboard();
+        }
+    }
+
+    private boolean isUserLoggedIn() {
+        // Check if user is already logged in
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        return prefs.getBoolean("isLoggedIn", false);
+    }
+
+    private void showExitConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to exit the app?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    finishAffinity(); // Close all activities
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

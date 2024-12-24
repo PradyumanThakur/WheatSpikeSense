@@ -1,11 +1,11 @@
 package com.example.detectify.UserActivity;
 
-import static com.example.detectify.DashboardFeaturesActivity.SaveDataActivity.exportData;
-
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.Nullable;
+import androidx.activity.OnBackPressedDispatcher;
 import androidx.appcompat.app.AppCompatActivity;
 
 
@@ -31,17 +31,10 @@ public class DashboardActivity extends AppCompatActivity {
     private View detectCard, visualizeCard, userProfile, downloadCard;
     private String userFirstName;
     private String userLastName;
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
     private int userId;
     private String userEmail;
+    private OnBackPressedCallback backPressedCallback;
+    private boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,55 +62,75 @@ public class DashboardActivity extends AppCompatActivity {
         welcomeTextView.setText(userFirstName + " " + userLastName);
 
         // Set click listeners for buttons
-        logOutButton.setOnClickListener(v -> {
-            showLogoutConfirmationDialog();
-        });
+        logOutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
 
-        backButton.setOnClickListener(v ->  onBackPressed());
+        // Handle the user-defined back button press
+        backButton.setOnClickListener(v -> handleBackButton());
 
-
-        // Handle the back button press
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+        // Handle the mobile back button press
+        OnBackPressedDispatcher onBackPressedDispatcher = getOnBackPressedDispatcher();
+        backPressedCallback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                Toast.makeText(DashboardActivity.this, "Dashboard", Toast.LENGTH_SHORT).show();
+                handleBackButton();
             }
-        });
+        };
+        onBackPressedDispatcher.addCallback(this, backPressedCallback);
 
         // Set click listeners for detect card
-        detectCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //detectCard.setEnabled(false);
-                Intent intent = new Intent(DashboardActivity.this, DetectActivity.class);
-                startActivity(intent);
-            }
+        detectCard.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, DetectActivity.class);
+            startActivity(intent);
+            saveLastActivity(DetectActivity.class.getName());
         });
 
-        visualizeCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DashboardActivity.this, VisualizationActivity.class);
-                startActivity(intent);
-            }
+        visualizeCard.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, VisualizationActivity.class);
+            startActivity(intent);
+            saveLastActivity(VisualizationActivity.class.getName());
         });
 
         // Set click listeners for download card
-        downloadCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Call the exportData method
-                exportData(DashboardActivity.this);
-            }
+        downloadCard.setOnClickListener(v -> {
+            SaveDataActivity.exportData(DashboardActivity.this);
+            saveLastActivity(SaveDataActivity.class.getName());
+
         });
 
-        userProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DashboardActivity.this, UserProfileActivity.class);
-                startActivity(intent);
-            }
+        userProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, UserProfileActivity.class);
+            startActivity(intent);
+            saveLastActivity(UserProfileActivity.class.getName());
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Enable the back pressed callback when the activity is in the foreground
+        if (backPressedCallback != null) {
+            backPressedCallback.setEnabled(true);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Disable the back pressed callback when the activity is in the background
+        if (backPressedCallback != null) {
+            backPressedCallback.setEnabled(false);
+        }
+    }
+
+    private void handleBackButton() {
+        if (doubleBackToExitPressedOnce) {
+            moveTaskToBack(true);  // Close all activities
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
     }
 
     // Show logout confirmation dialog
@@ -140,8 +153,22 @@ public class DashboardActivity extends AppCompatActivity {
         Toast.makeText(DashboardActivity.this, "Successfully logged out", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
+        // Clear the activity stack
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void saveLastActivity(String activityName) {
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("last_activity", activityName);
+        editor.apply();
+    }
+
+    private void navigateToActivity(Class<?> activityClass) {
+        saveLastActivity(activityClass.getName());
+        Intent intent = new Intent(DashboardActivity.this, activityClass);
+        startActivity(intent);
     }
 }

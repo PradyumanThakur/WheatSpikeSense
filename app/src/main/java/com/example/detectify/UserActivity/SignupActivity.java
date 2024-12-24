@@ -6,6 +6,7 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.detectify.DatabaseActivity.DatabaseHelper;
@@ -32,6 +34,7 @@ public class SignupActivity extends AppCompatActivity {
     private Button btnSignup;
     private TextView loginText;
     private DatabaseHelper databaseHelper;
+    private OnBackPressedCallback backPressedCallback;
 
 
     @Override
@@ -77,6 +80,15 @@ public class SignupActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // Handle the back button press
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                showExitConfirmationDialog();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
     }
 
     private void registerUser() {
@@ -168,7 +180,7 @@ public class SignupActivity extends AppCompatActivity {
                     }
                 }
             }, null);
-        }catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, "Error during user registration: ", e);
             Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
         }
@@ -177,5 +189,15 @@ public class SignupActivity extends AppCompatActivity {
     // Email validation method
     private boolean isValidEmail(String email) {
         return !TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private void showExitConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to exit?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    finishAffinity(); // Close all activities
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

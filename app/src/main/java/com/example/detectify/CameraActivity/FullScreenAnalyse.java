@@ -32,13 +32,11 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
 
     public static class Result{
 
-        public Result(long costTime, long count_time, Bitmap bitmap) {
+        public Result(long costTime, Bitmap bitmap) {
             this.costTime = costTime;
             this.bitmap = bitmap;
-            this.count_time = count_time;
         }
         long costTime;
-        long count_time;
         Bitmap bitmap;
     }
 
@@ -50,7 +48,6 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
     ImageProcess imageProcess;
     private Yolov5TFLiteDetector yolov5TFLiteDetector;
     private TextView objectCountsTextView;
-    private TextView counting_inferenceTimeTextView;
 
     private int nextPotId = 0;
     //public HashMap<String, Set<Integer>> spikePerPotSet = new HashMap<>();
@@ -227,7 +224,7 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
             long count_time = (end - start_count);
             Log.d("count_time", String.valueOf(count_time));
             image.close();
-            emitter.onNext(new Result(costTime, count_time, emptyCropSizeBitmap));
+            emitter.onNext(new Result(costTime, emptyCropSizeBitmap));
         }).subscribeOn(Schedulers.io()) // The observer is defined here, which is the thread of the above code. If it is not defined, it is synchronized with the main thread, not asynchronous.
                 // Here is back to the main thread, the observer receives the data sent by the emitter for processing
                 .observeOn(AndroidSchedulers.mainThread())
@@ -238,7 +235,6 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
                     inferenceTimeTextView.setText(Long.toString(result.costTime) + "ms");
                     // Update objectCountsTextView with the latest count
                     objectCountsTextView.setText(generateCountsText());
-                    counting_inferenceTimeTextView.setText(Long.toString(result.count_time) + "ms");
                 });
     }
 
