@@ -121,12 +121,14 @@ public class LoginActivity extends AppCompatActivity {
                     editor.putString("lastname", lastName);
                     editor.putString("email", email);
                     editor.putInt("user_id", userId); // Save user ID
+                    editor.putBoolean("isLoggedIn", true);
                     editor.apply();
 
                     Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
 
                     // Redirect to dashboard
-                    redirectToLastActivity();
+//                    redirectToLastActivity();
+                    redirectToDashboard();
 
                 } else {
                     Toast.makeText(LoginActivity.this, "Error retrieving user details", Toast.LENGTH_SHORT).show();

@@ -81,26 +81,26 @@ public class DashboardActivity extends AppCompatActivity {
         detectCard.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, DetectActivity.class);
             startActivity(intent);
-            saveLastActivity(DetectActivity.class.getName());
+            //saveLastActivity(DetectActivity.class.getName());
         });
 
         visualizeCard.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, VisualizationActivity.class);
             startActivity(intent);
-            saveLastActivity(VisualizationActivity.class.getName());
+            //saveLastActivity(VisualizationActivity.class.getName());
         });
 
         // Set click listeners for download card
         downloadCard.setOnClickListener(v -> {
             SaveDataActivity.exportData(DashboardActivity.this);
-            saveLastActivity(SaveDataActivity.class.getName());
+            //saveLastActivity(SaveDataActivity.class.getName());
 
         });
 
         userProfile.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, UserProfileActivity.class);
             startActivity(intent);
-            saveLastActivity(UserProfileActivity.class.getName());
+            //saveLastActivity(UserProfileActivity.class.getName());
         });
     }
 
@@ -125,6 +125,7 @@ public class DashboardActivity extends AppCompatActivity {
     private void handleBackButton() {
         if (doubleBackToExitPressedOnce) {
             moveTaskToBack(true);  // Close all activities
+            return;
         }
 
         this.doubleBackToExitPressedOnce = true;

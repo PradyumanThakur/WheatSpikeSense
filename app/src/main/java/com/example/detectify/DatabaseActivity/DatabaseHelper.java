@@ -112,7 +112,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // User management methods
     // Method to add a new user
-    public void addUser(String firstname, String lastname, String email, String password) {
+    public long addUser(String firstname, String lastname, String email, String password) {
         SQLiteDatabase db = null;
         try {
             db = this.getWritableDatabase();
@@ -130,6 +130,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } finally {
             if (db != null) db.close();
         }
+        return 0;
     }
 
     // Method to check if an email is already registered

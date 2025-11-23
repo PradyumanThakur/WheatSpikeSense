@@ -172,19 +172,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/camera_preview_match" />
 
-    <TextView
-        android:id="@+id/counting_inferenceTimeTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@color/dark_gray"
-        android:layout_marginTop="5dp"
-        android:padding="10dp"
-        android:text="Counting inference time: xx ms"
-        android:textColor="#FFFFFF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/objectCountsTextView" />
-
     <ImageButton
         android:id="@+id/closebutton"
         android:layout_width="wrap_content"

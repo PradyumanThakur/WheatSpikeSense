@@ -222,7 +222,7 @@ public class FullScreenAnalyse implements ImageAnalysis.Analyzer {
             long end = System.currentTimeMillis();
             long costTime = (end - start);
             long count_time = (end - start_count);
-            Log.d("count_time", String.valueOf(count_time));
+            // Log.d("count_time", String.valueOf(count_time));
             image.close();
             emitter.onNext(new Result(costTime, emptyCropSizeBitmap));
         }).subscribeOn(Schedulers.io()) // The observer is defined here, which is the thread of the above code. If it is not defined, it is synchronized with the main thread, not asynchronous.
