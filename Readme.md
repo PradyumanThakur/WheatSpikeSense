@@ -2,6 +2,9 @@
 
 Real-time Wheat Spike Detection & Counting using YOLOv5 (TFLite)
 
+![App Demo](app/src/main/assets/mobile_wheatspikesense_detection_realtime.gif)
+
+*Demo of the app detecting wheat spikes in real-time.*
 
 # 📱 Overview
 
