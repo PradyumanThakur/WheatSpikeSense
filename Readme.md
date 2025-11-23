@@ -20,3 +20,14 @@ Wheat Spike Sense is a lightweight Android application that detects and counts w
 - Bounding box visualization.
 - Single-pot per frame tracking (current version).
 
+---
+
+# 👤 Author  
+[Pradyuman Thakur](https://www.linkedin.com/in/pradyuman-thakur-955238212/)
+
+---
+
+# 📜 License  
+MIT License
+
+
